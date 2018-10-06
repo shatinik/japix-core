@@ -54,16 +54,16 @@ class Engine {
        try {
             switch (this.props.protocol.toLowerCase()) {
                 case 'http':
-                    let http = require('./http');
+                    const http = require('./http');
                     await http.listen(this.routesTable, this.props);
                 break;
 
                 case 'https':
-                    let https = require('./https');
+                    const https = require('./https');
                     await https.listen(this.routesTable, this.props);                
                 break;
                 case 'http2':
-                    let http2 = require('./http2');
+                    const http2 = require('./http2');
                     await http2.listen(this.routesTable, this.props);
                 break;
 
