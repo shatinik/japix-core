@@ -1,3 +1,4 @@
+const cluster = require('cluster');
 const defaults = require('./defaults');
 const Router = require('./router/router');
 const HandlersLoader = require('./handlersLoader');
@@ -7,7 +8,7 @@ const HandlersLoader = require('./handlersLoader');
  */
 class Engine {
     constructor(startProps) {
-        if (startProps === undefined) {
+        if (!startProps) {
             startProps = defaults.startProps;
         } else {
             startProps = this.compareProps(startProps, defaults.startProps);
@@ -48,10 +49,40 @@ class Engine {
         this.actions = await this.handlersLoader.getEnabledActions({});
         this.routesTable = await Router.getRoutesTable(this.actions);
 
-        /** 
-         * Choosing the protocol
-        */
-       try {
+        if (this.props.clusters.threads) {
+            await this.createCluster();
+        } else {
+            await this.startServer();
+        }
+    }
+
+    /**
+     * Cluster creation
+     * @private
+     */
+    async createCluster() {
+        if ( isNaN(this.props.clusters.threads) || this.props.clusters.threads <= 0 ) {
+            return false; 
+        } 
+        if (cluster.isMaster) {
+            cluster.on('disconnect', (worker, code, signal) => {
+                cluster.fork();
+            });
+        
+            for (let i = 0; i < this.props.clusters.threads; i++) {
+                cluster.fork();
+            }
+        } else {
+            await this.startServer();
+        } 
+    }
+
+    /**
+     * Choosing the protocol
+     * @private
+     */
+    async startServer() {
+        try {
             switch (this.props.protocol.toLowerCase()) {
                 case 'http':
                     const http = require('./http');
