@@ -52,26 +52,21 @@ class Http2 {
                 'content-type': 'text/html',
                 ':status': 200
             });
-
-            Router.findAction(routesTable, requestUrl.pathname).then(res => {
-                if (!res) {
-                    stream.end(JSON.stringify('404'));
+            let action = await Router.findAction(routesTable, requestUrl.pathname);
+            if (!action) {
+                stream.end(JSON.stringify('404'));
+            } else {
+                if (headers[HTTP2_HEADER_METHOD].toLowerCase() === action.method) {
+                    let routeData = await Router.getRouteData({
+                        model: action.data,
+                        body: body,
+                        requestUrl: requestUrl
+                    });
+                    response.end(JSON.stringify(action.action(routeData)));
                 } else {
-                    if (headers[HTTP2_HEADER_METHOD].toLowerCase() === res.method) {
-
-                        Router.getRouteData({
-                            model: res.data,
-                            body: body,
-                            requestUrl: requestUrl
-                        }).then(routeData => {
-                            response.end(JSON.stringify(res.action(routeData)));
-                        });
-
-                    } else {
-                        stream.end(JSON.stringify('404'));
-                    }
+                    stream.end(JSON.stringify('404'));
                 }
-            });
+            }
         });    
         
         return server;

@@ -41,32 +41,27 @@ class Https {
             throw err;
         }
 
-        return https.createServer(option, (request, response) => {
+        return https.createServer(option, async (request, response) => {
             let requestUrl = url.parse(request.url);
 
             if (requestUrl.pathname === '/favicon.ico' && props.blockFavicon === true) {
                 return;
             }
-
-            Router.findAction(routesTable, requestUrl.pathname).then(res => {
-                if (!res) {
-                    response.end(JSON.stringify('404'));
+            let action = await Router.findAction(routesTable, requestUrl.pathname);
+            if (!action) {
+                response.end(JSON.stringify('404'));
+            } else {
+                if (request.method.toLowerCase() === action.method) {
+                    let routedData = await Router.getRouteData({
+                        model: action.data,
+                        body: {},
+                        requestUrl: requestUrl
+                    });
+                    response.end(JSON.stringify(action.action(routeData)));
                 } else {
-                    if (request.method.toLowerCase() === res.method) {
-                        
-                        Router.getRouteData({
-                            model: res.data,
-                            body: {},
-                            requestUrl: requestUrl
-                        }).then(routeData => {
-                            response.end(JSON.stringify(res.action(routeData)));
-                        });
-
-                    } else {
-                        response.end(JSON.stringify('404'));
-                    }
+                    response.end(JSON.stringify('404'));
                 }
-            });
+            }
         });
     }
 

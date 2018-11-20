@@ -9,32 +9,28 @@ class Http {
     static async init(routesTable, props) {   
         let requestUrl = '';
 
-        return http.createServer((request, response) => {
+        return http.createServer(async (request, response) => {
             requestUrl = url.parse(request.url);
 
             if (requestUrl.pathname === '/favicon.ico' && props.blockFavicon === true) {
                 return;
             }
+            let action = await Router.findAction(routesTable, requestUrl.pathname);
 
-            Router.findAction(routesTable, requestUrl.pathname).then(res => {
-                if (!res) {
-                    response.end(JSON.stringify('404'));
+            if (!action) {
+                response.end(JSON.stringify('404'));
+            } else {
+                if (request.method.toLowerCase() === action.method) {
+                    let routeData = await Router.getRouteData({
+                        model: action.data,
+                        body: {},
+                        requestUrl: requestUrl
+                    });
+                    response.end(JSON.stringify(action.action(routeData)));
                 } else {
-                    if (request.method.toLowerCase() === res.method) {
-
-                        Router.getRouteData({
-                            model: res.data,
-                            body: {},
-                            requestUrl: requestUrl
-                        }).then(routeData => {
-                            response.end(JSON.stringify(res.action(routeData)));
-                        });
-
-                    } else {
-                        response.end(JSON.stringify('404'));
-                    }
+                    response.end(JSON.stringify('404'));
                 }
-            });
+            }
         });
     }
 
