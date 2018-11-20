@@ -48,8 +48,9 @@ class Https {
                 return;
             }
             let action = await Router.findAction(routesTable, requestUrl.pathname);
+            let result = {};
             if (!action) {
-                response.end(JSON.stringify('404'));
+                result = 404;
             } else {
                 if (request.method.toLowerCase() === action.method) {
                     let routedData = await Router.getRouteData({
@@ -57,11 +58,12 @@ class Https {
                         body: {},
                         requestUrl: requestUrl
                     });
-                    response.end(JSON.stringify(action.action(routeData)));
+                    result = action.action(routeData);
                 } else {
-                    response.end(JSON.stringify('404'));
+                    result = 404;
                 }
             }
+            response.end(JSON.stringify(result));
         });
     }
 

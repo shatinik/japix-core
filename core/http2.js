@@ -53,8 +53,9 @@ class Http2 {
                 ':status': 200
             });
             let action = await Router.findAction(routesTable, requestUrl.pathname);
+            let result = {};
             if (!action) {
-                stream.end(JSON.stringify('404'));
+                result = 404;
             } else {
                 if (headers[HTTP2_HEADER_METHOD].toLowerCase() === action.method) {
                     let routeData = await Router.getRouteData({
@@ -62,11 +63,12 @@ class Http2 {
                         body: body,
                         requestUrl: requestUrl
                     });
-                    response.end(JSON.stringify(action.action(routeData)));
+                    result = action.action(routeData);
                 } else {
-                    stream.end(JSON.stringify('404'));
+                    result = 404;
                 }
             }
+            stream.end(JSON.stringify(result));
         });    
         
         return server;
