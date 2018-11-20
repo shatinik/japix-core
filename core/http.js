@@ -27,7 +27,7 @@ class Http {
                         body: {},
                         requestUrl: requestUrl
                     });
-                    result = action.action(routeData);
+                    result = await action.action(routeData);
                 } else {
                     status = 404;
                 }
