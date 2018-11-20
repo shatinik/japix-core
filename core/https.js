@@ -49,8 +49,9 @@ class Https {
             }
             let action = await Router.findAction(routesTable, requestUrl.pathname);
             let result = {};
+            let status = 200;
             if (!action) {
-                result = 404;
+                status = 404;
             } else {
                 if (request.method.toLowerCase() === action.method) {
                     let routedData = await Router.getRouteData({
@@ -60,9 +61,13 @@ class Https {
                     });
                     result = action.action(routeData);
                 } else {
-                    result = 404;
+                    status = 404;
                 }
             }
+            response.respond({
+                'content-type': 'application/json',
+                ':status': status
+            });
             response.end(JSON.stringify(result));
         });
     }
