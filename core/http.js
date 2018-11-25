@@ -32,8 +32,12 @@ class Http {
                         res.setHeader('WWW-Authenticate', 'Basic realm="nope"');
                         throw new Error('Wrong auth data');
                     }
-                    let parse = bodyParserLoader(req.headers['content-type']);
-                    let body = parse(bodyRaw);
+                    let body = {};
+                    if (req.headers['content-type']) {
+                        let parse = bodyParserLoader(req.headers['content-type']);
+                        body = parse(bodyRaw);
+                    }
+                    
                     requestUrl = url.parse(req.url);
 
                     if (requestUrl.pathname === '/favicon.ico' && props.blockFavicon === true) {
