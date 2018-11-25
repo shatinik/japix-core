@@ -7,7 +7,7 @@ function choose(contentType) {
                 return querystring.parse;
             }
             default: {
-                throw new Error('Unknown Content-Type');
+                throw new Error('Unknown Content-Type ' + contentType);
             }
         }
     } catch (e) {
