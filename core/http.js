@@ -77,7 +77,7 @@ class Http {
      */
     static async listen(routesTable, props) {
         try {
-            let server = await this.init(routesTable, props);
+            const server = await this.init(routesTable, props);
             server.listen(props.port, () => {
                 console.log('JAPIX is working!');
             });
