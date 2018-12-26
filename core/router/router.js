@@ -38,7 +38,7 @@ class Router {
             model: {
                 elems: []
             },
-            body: {},
+            body: data.body,
             requestUrl: data.requestUrl
         };
 

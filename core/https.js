@@ -41,32 +41,34 @@ class Https {
             throw err;
         }
 
-        return https.createServer(option, (request, response) => {
-            const requestUrl = url.parse(request.url);
+        return https.createServer(option, async (request, response) => {
+            let requestUrl = url.parse(request.url);
 
             if (requestUrl.pathname === '/favicon.ico' && props.blockFavicon === true) {
                 return;
             }
-
-            Router.findAction(routesTable, requestUrl.pathname).then(res => {
-                if (!res) {
-                    response.end(JSON.stringify('404'));
+            let action = await Router.findAction(routesTable, requestUrl.pathname);
+            let result = {};
+            let status = 200;
+            if (!action) {
+                status = 404;
+            } else {
+                if (request.method.toLowerCase() === action.method) {
+                    let routedData = await Router.getRouteData({
+                        model: action.data,
+                        body: {},
+                        requestUrl: requestUrl
+                    });
+                    result = await action.action(routeData);
                 } else {
-                    if (request.method.toLowerCase() === res.method) {
-                        
-                        Router.getRouteData({
-                            model: res.data,
-                            body: {},
-                            requestUrl: requestUrl
-                        }).then(routeData => {
-                            response.end(JSON.stringify(res.action(routeData)));
-                        });
-
-                    } else {
-                        response.end(JSON.stringify('404'));
-                    }
+                    status = 404;
                 }
+            }
+            response.respond({
+                'content-type': 'application/json',
+                ':status': status
             });
+            response.end(JSON.stringify(result));
         });
     }
 
